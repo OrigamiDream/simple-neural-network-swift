@@ -10,22 +10,37 @@ import Foundation
 
 // XOR Gate
 
-func analyze(test: [[Double]], _ network: Network) {
-    network.think(test)
 
-    let array = network.getOutput().getMatrix()[0]
-    var result: [Int] = Array(repeating: 0, count: array.count)
-    for i in 0 ..< array.count {
-        let value = array[i]
-        if value >= 0.5 {
-            result[i] = 1
-        } else {
-            result[i] = 0
+struct ResultData {
+
+    var actualValue: Double
+    var fixedValue: Int = 0
+    var expectedValue: Int = 0
+    var toString: String {
+        get {
+            return "\(actualValue) -> \(fixedValue) : Expected: \(expectedValue); Error: \(expectedValue != fixedValue)"
         }
-        print(value)
     }
 
-    print(result)
+    init(actualValue: Double, expectedValue: Int) {
+        self.actualValue = actualValue
+        self.expectedValue = expectedValue
+    }
+}
+
+func analyze(test: [Int: [Double]], _ network: Network) {
+    for key in test.keys {
+        network.think(Array(repeating: test[key]!, count: 1))
+
+        let value = network.getOutput().getMatrix()[0][0]
+        var result = ResultData(actualValue: value, expectedValue: key)
+        if (value >= 0.5) {
+            result.fixedValue = 1
+        } else {
+            result.fixedValue = 0
+        }
+        print(result.toString)
+    }
 }
 
 let network = Network.builder().learningRate(0.1).iterations(100000).inputNeurons(2)
@@ -39,7 +54,7 @@ let outputs: [[Double]] = [[0], [1], [1], [0]]
 
 network.train(inputs, outputs)
 
-analyze(test: [[1.0, 1.0]], network)
-analyze(test: [[1.0, 0.0]], network)
-analyze(test: [[0.0, 1.0]], network)
-analyze(test: [[0.0, 0.0]], network)
+analyze(test: [0: [1.0, 1.0]], network)
+analyze(test: [1: [1.0, 0.0]], network)
+analyze(test: [1: [0.0, 1.0]], network)
+analyze(test: [0: [0.0, 0.0]], network)
